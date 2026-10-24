@@ -1,11 +1,11 @@
 📊 DAX Measures & Customer Retention Analytics
 
-This section contains the core DAX measures used in the E-Commerce Customer Retention Intelligence project. These calculations support sales performance analysis, customer behavior tracking, RFM scoring, and customer segmentation in Power BI.
+This section documents the DAX measures used in the E-Commerce Customer Retention Intelligence project to analyze sales performance, customer purchasing behavior, RFM scores, and customer retention segments in Power BI.
 
 1. 💰 Sales & Customer KPIs
 Net Sales
 
-Calculates net sales from completed orders after applying product prices and order-level discounts.
+Calculates total net sales from completed orders after applying product prices and discounts.
 
 Net Sales =
 CALCULATE(
@@ -20,7 +20,7 @@ CALCULATE(
 
 Completed Orders
 
-Counts distinct orders with a completed status.
+Counts the number of distinct completed orders.
 
 Completed Orders =
 CALCULATE(
@@ -50,10 +50,10 @@ CALCULATE(
 
 2. 🎯 RFM Scoring Measures
 
-RFM analysis evaluates customers based on three dimensions:
+RFM analysis evaluates customers based on three key dimensions:
 
-Recency (R): How recently a customer purchased.
-Frequency (F): How often a customer purchases.
+Recency (R): How recently a customer made a purchase.
+Frequency (F): How often a customer makes purchases.
 Monetary (M): How much a customer spends.
 
 Each dimension is assigned a score from 1 to 5.
@@ -112,7 +112,7 @@ RETURN
 3. 👥 Customer Segmentation
 Customer Segment
 
-Classifies customers into actionable retention segments using recency, frequency, and monetary scores.
+Classifies customers into actionable retention segments based on recency, frequency, and monetary behavior.
 
 Customer Segment =
 VAR R = [Recency Days]
@@ -141,13 +141,11 @@ VAR SelectedR =
     SELECTEDVALUE(R_Score_Axis[R Score])
 VAR SelectedF =
     SELECTEDVALUE(F_Score_Axis[F Score])
-
 RETURN
     SUMX(
         VALUES(dim_customers[CustomerID]),
         VAR Days = [Recency Days]
         VAR Freq = [Frequency]
-
         VAR R =
             SWITCH(
                 TRUE(),
@@ -158,7 +156,6 @@ RETURN
                 Days <= 365, 2,
                 1
             )
-
         VAR F =
             SWITCH(
                 TRUE(),
@@ -169,17 +166,10 @@ RETURN
                 Freq = 2, 2,
                 1
             )
-
         RETURN
             IF(
-                (
-                    NOT ISINSCOPE(R_Score_Axis[R Score])
-                        || R = SelectedR
-                )
-                    && (
-                        NOT ISINSCOPE(F_Score_Axis[F Score])
-                            || F = SelectedF
-                    )
+                (NOT ISINSCOPE(R_Score_Axis[R Score]) || R = SelectedR)
+                    && (NOT ISINSCOPE(F_Score_Axis[F Score]) || F = SelectedF)
                     && NOT ISBLANK(R)
                     && NOT ISBLANK(F),
                 1,
@@ -190,7 +180,7 @@ RETURN
 5. 📊 Customer Behavior & Performance Metrics
 Avg Purchase Frequency
 
-Calculates the average number of completed orders per customer across the current customer population and filter context.
+Calculates the average number of completed orders per customer.
 
 Avg Purchase Frequency =
 AVERAGEX(
@@ -200,7 +190,7 @@ AVERAGEX(
 
 Avg Recency Days
 
-Calculates the average recency value across customers.
+Calculates the average recency days across customers.
 
 Avg Recency Days =
 AVERAGEX(
@@ -221,7 +211,7 @@ DIVIDE(
 
 Avg Order Value
 
-Calculates the average net sales value per completed order.
+Calculates average net sales per completed order.
 
 Avg Order Value =
 DIVIDE(
@@ -230,22 +220,4 @@ DIVIDE(
     0
 )
 
-📌 Key Business Applications
-Measure	Business Purpose
-Net Sales	Monitor revenue from completed orders
-Completed Orders	Track order performance
-Distinct Customers	Measure the active purchasing customer base
-RFM Scores	Evaluate customer purchasing behavior
-Customer Segment	Identify retention and re-engagement opportunities
-RFM Customer Count	Visualize customer distribution by RFM scores
-Avg Purchase Frequency	Understand repeat-purchase behavior
-Avg Recency Days	Monitor customer purchase inactivity
-Avg Spend/Customer	Evaluate customer revenue contribution
-Avg Order Value	Track average transaction value
-⚙️ Implementation Notes
-The measures assume appropriate relationships between fact_orders, dim_products, and dim_customers.
-Net Sales assumes Discount is stored as a decimal fraction, such as 0.10 for a 10% discount.
-The RFM thresholds are business-defined and can be adjusted to match the dataset.
-The R_Score_Axis and F_Score_Axis tables should contain score values from 1 to 5 and should be disconnected from the model tables.
-The [Recency Days] measure must be defined separately and should calculate days since the customer's most recent completed purchase.
-The segmentation measure should be validated against the intended RFM score logic before being used for retention decisions.
+These DAX measures provide the analytical foundation for the Power BI Customer Retention Dashboard, enabling sales monitoring, customer behavior analysis, RFM-based segmentation, and data-driven retention strategies.
