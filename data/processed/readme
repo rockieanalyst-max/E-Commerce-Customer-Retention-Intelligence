@@ -1,1 +1,51 @@
+# Data Cleansing & Quality Audit Log
+**Project:** E-Commerce Customer Retention Intelligence  
+**Scope:** Registered Customer Cohort Analysis & RFM Segmentation  
+**Status:** Verified & Reconciled  
 
+---
+
+## 1. Executive Summary & Data Integrity Rules
+This audit log documents the data cleaning, transformation, and quality assurance processes applied to the raw e-commerce transaction dataset prior to semantic modeling in Power BI. 
+
+To satisfy the **Business Requirements Document (BRD)**, the core data processing strategy isolates **active registered customer behavior**, explicitly separating non-qualifying and guest checkout transactions.
+
+---
+
+## 2. Cleansing Steps & Filtering Logic
+
+### Step 1: Order Status Filtering
+* **Rule:** Filter strictly for `OrderStatus = "Completed"`.
+* **Rationale:** Excludes cancelled, pending, failed, or refunded transactions to ensure monetary calculations reflect true realized revenue.
+
+### Step 2: Customer Identity Isolation (Guest Checkout Exclusion)
+* **Rule:** Exclude rows where `CustomerID` is null, blank, or anonymous (`CustomerID is not blank`).
+* **Impact:** 
+  * **Guest Checkouts Excluded:** 1,407 orders representing **$101,140.00** in net sales.
+  * **Registered Cohort Retained:** **9,607 unique registered customers** generating **$3,108,791.35** in completed net sales across **18,214 completed orders**.
+
+### Step 3: Date Table Engineering (`dim_date`)
+* **Rule:** Built a dedicated, continuous calendar dimension table (`dim_date`) spanning from the minimum transaction date (`2023-01-01`) to the maximum transaction date (`2025-12-31`).
+* **Attributes Generated:** `DateKey`, `Year`, `Quarter`, `Month`, `MonthName`, `DayOfWeek`, `FiscalYear`, `IsWeekend`.
+* **Relationship:** Joined `dim_date[Date]` (1) to `fact_orders[OrderDate]` (*) to enable time-intelligence calculations, cohort analysis, and period-over-period trend comparisons.
+
+### Step 4: Granularity & Order-Grain Verification
+* **Rule:** Enforce order frequency at the distinct order grain: `DISTINCTCOUNT(fact_orders[OrderID])`.
+* **Rationale:** Prevents multi-item line orders from artificially inflating customer purchase frequency scores.
+
+---
+
+## 3. Reconciled Baseline Metrics
+
+| Metric | Raw Dataset | Cleansed Registered Cohort | Variance / Exclusions |
+| :--- | :---: | :---: | :---: |
+| **Total Customers** | 11,014 | **9,607** | -1,407 (Guest Checkouts) |
+| **Completed Orders** | 19,621 | **18,214** | -1,407 (Guest Orders) |
+| **Total Net Revenue** | $3,209,931.35 | **$3,108,791.35** | -$101,140.00 (Guest Sales) |
+| **Avg Spend / Registered User** | N/A | **$323.60** | Baseline established |
+
+---
+
+## 4. Sign-Off & Verification
+* **Data Quality Passed:** All customer IDs are non-null and mapped to stable keys.
+* **RFM Scoring Engine Ready:** Scores (1–5) for Recency, Frequency, and Monetary value calculated across all 9,607 registered accounts.
